@@ -10,14 +10,15 @@ vector<int> sequence;
 
 void readInput() {
     cin >> N >> M;
+    tableRef.resize(N, vector<int>(N));
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++)
             cin >> tableRef[i][j];
     }
+    sequence.resize(M);
     for (int i = 0; i < M; i++)
         cin >> sequence[i];
     cin >> target;
-
 }
 
 int main() {
