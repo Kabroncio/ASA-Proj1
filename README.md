@@ -1,3 +1,12 @@
+MakeFile:
+make - Compilar
+make run - Correr o código com o input1.txt
+make clean - Apagar o a.out
+
+
+
+
+
 INSTITUTO SUPERIOR TÉCNICO
 Análise e Síntese de Algoritmos
 2024/2025
