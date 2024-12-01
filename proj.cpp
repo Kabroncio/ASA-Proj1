@@ -6,7 +6,7 @@ using namespace std;
 
 int N, M, target;
 vector<vector<int>> tableRef;
-vector<int> sequence;
+vector<vector<list<pair<int, int>>>> tableCalculated;
 
 void readInput() {
     cin >> N >> M;
@@ -15,10 +15,41 @@ void readInput() {
         for (int j = 0; j < N; j++)
             cin >> tableRef[i][j];
     }
-    sequence.resize(M);
-    for (int i = 0; i < M; i++)
-        cin >> sequence[i];
+    tableCalculated.resize(M, vector<list<pair<int, int>>>(M));
+    int n;
+    for (int i = 0; i < M; i++) {
+        cin >> n;
+        tableCalculated[i][i].push_back(make_pair(n, 0));
+    }
     cin >> target;
+}
+
+int calculate() {
+    
+    /**
+     for (int len = 2; len < M; len++) {
+        for (int i = 0; (i + len) < M; i++) {
+            for ( )
+        }
+    }
+     */
+    
+    for (int d = 1; d < M; d++) {
+        for (int i = 0; i <= (M - d); i++) {
+            int j = i + 1;
+            if (d == 1)
+                tableCalculated[i][j].push_back(make_pair(tableRef[tableCalculated[i][i].front().first - 1][tableCalculated[j][j].front().first - 1]), d);    
+            else {
+                int pos = 0;
+                for (int k = d - 1; k > 0; k--) {
+                    for ()
+                    tableCalculated[i][j].push_back(make_pair( tableCalculated[i][j].front    , k))
+                    
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 int main() {
@@ -26,13 +57,10 @@ int main() {
     std::cin.tie(0);
 
     readInput();
+    calculate();
 
     return 0;
 }
-
-
-
-
 
 
 
