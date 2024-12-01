@@ -23,15 +23,40 @@ void readInput() {
     cin >> target;
 }
 
-int calculate() {
-    /*
+void calculate() {
     for (int len = 2; len < M; len++) {
         for (int i = 0; (i + len) < M; i++) {
-            for ( )
+            int f = i + len - 1;
+            for (int k = f; k > i; k--) {
+                int res = tableRef[tableCalculated[i][k - 1][0]][tableCalculated[k][f][0]];
+                tableCalculated[i][f].push_back(res);
+                //tableCalculated[i][f].push_back(k);
+            }
         }
     }
-    */
+}
 
+// 2 2 2 2 1 3
+// 0 1 2 3 4 5
+
+void printTableCalculated() {
+    cout << "TableCalculated:\n";
+    for (int i = 0; i < M; i++) {
+        for (int f = i; f < M; f++) {
+            cout << "Interval [" << (i+1) << ", " << (f+1) << "]: ";
+            if (tableCalculated[i][f].empty()) {
+                cout << "Empty";
+            } else {
+                for (int val : tableCalculated[i][f]) {
+                    cout << val << " ";
+                }
+            }
+            cout << "\n";
+        }
+    }
+}
+
+/*
     for (int d = 1; d < M; d++) {
         for (int i = 0; i <= (M - d); i++) {
             int j = i + 1;
@@ -46,8 +71,10 @@ int calculate() {
             }
         }
     }
+
     return 0;
 }
+*/
 
 int main() {
     std::ios::sync_with_stdio(0);
@@ -55,6 +82,7 @@ int main() {
 
     readInput();
     calculate();
+    printTableCalculated();
 
     return 0;
 }
