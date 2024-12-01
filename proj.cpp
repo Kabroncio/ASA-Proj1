@@ -2,6 +2,7 @@
 #include <vector>
 #include <list>
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
 vector<vector<int>> tableRef;
@@ -13,10 +14,12 @@ vector<vector<vector<int>>> readInput(int* N, int* M, int* target) {
         for (int j = 0; j < *N; j++)
             cin >> tableRef[i][j];
     }
-    vector<vector<vector<int>>> tableCalculated(*M, vector<vector<int>>(*M, vector<int>(*M)));
+    vector<vector<vector<int>>> tableCalculated(*M, vector<vector<int>>(*M, vector<int>()));
     for (int i = 0; i < *M; i++) {
-        cin >> tableCalculated[i][i][0];
-        tableCalculated[i][i][1] = 0;
+        int val;
+        cin >> val;
+        tableCalculated[i][i].push_back(val);
+        tableCalculated[i][i].push_back(0);
     }
     cin >> *target;
     
@@ -24,16 +27,21 @@ vector<vector<vector<int>>> readInput(int* N, int* M, int* target) {
 }
 
 void calculate(int N, int M, int target, vector<vector<vector<int>>> &tableCalculated) {
-    for (int len = 2; len < M; len++) {
+    for (int len = 2; len <= M; len++) {
         for (int i = 0; (i + len) <= M; i++) {
             int f = i + len - 1;
             for (int k = f; k > i; k--) {
-                //printf("len: %d i: %d k:%d\n", len, i, k);
-                //printf("Indice: %d, %d\n", (tableCalculated[i][k - 1][0]-1), (tableCalculated[k][f][0])-1);
+                //printf("Indice: %d, %d\n", (tableCalculated[i][k - 1][0]), (tableCalculated[k][f][0]));
                 int res = tableRef[tableCalculated[i][k - 1][0] - 1][tableCalculated[k][f][0] - 1];
                 //printf("Res %d\n", res);
-                tableCalculated[i][f][0] = res;
-                tableCalculated[i][f][1]= k;
+                if (find(tableCalculated[i][f].begin(), tableCalculated[i][f].end(), res) == tableCalculated[i][f].end()) {
+                    tableCalculated[i][f].push_back(res);
+                    tableCalculated[i][f].push_back(k);
+                    //printf("len: %d i: %d k:%d\n", len, i, k);
+                    if (len == M && res == target){
+                        return;
+                    }
+                }
             }
         }
     }
@@ -66,12 +74,18 @@ int main() {
     int N, M, target;
 
     vector<vector<vector<int>>> tableCalculated = readInput(&N, &M, &target);
-    //calculate(N, M, target, tableCalculated);
+    calculate(N, M, target, tableCalculated);
     printTableCalculated(M, tableCalculated);
 
     return 0;
 }
 
+/*
+[[[2, 0], [1, 1], [2, 2, 1, 1], [2, 3, 2, 2, 1, 1]],
+ [[2, 0], [2, 1], [2, 2]],
+ [[3, 0], [3, 1]],
+ [[3, 0]]]
+*/
 
 
 
