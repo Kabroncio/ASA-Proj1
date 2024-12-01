@@ -27,18 +27,18 @@ vector<vector<vector<int>>> readInput(int* N, int* M, int* target) {
 }
 
 void calculate(int N, int M, int target, vector<vector<vector<int>>> &tableCalculated) {
-    for (int len = 2; len <= M; len++) {
-        for (int i = 0; (i + len) <= M; i++) {
-            int f = i + len - 1;
-            for (int k = f; k > i; k--) {
+    for (int len = 2; len <= M; len++) {    // Vai iterando sobre a sequencia inicial com os varios tamanhos possiveis ate M
+        for (int i = 0; (i + len) <= M; i++) {  // Vai a cada linha
+            int f = i + len - 1;    // Obtem o ultimo indice do termo da sequencia a ser observada
+            for (int k = f; k > i; k--) {   // Vai com o K desde o penultimo elemento ate o segundo
                 //printf("Indice: %d, %d\n", (tableCalculated[i][k - 1][0]), (tableCalculated[k][f][0]));
                 int res = tableRef[tableCalculated[i][k - 1][0] - 1][tableCalculated[k][f][0] - 1];
                 //printf("Res %d\n", res);
-                if (find(tableCalculated[i][f].begin(), tableCalculated[i][f].end(), res) == tableCalculated[i][f].end()) {
+                if (find(tableCalculated[i][f].begin(), tableCalculated[i][f].end(), res) == tableCalculated[i][f].end()) { //Verifica se o res ja existe
                     tableCalculated[i][f].push_back(res);
                     tableCalculated[i][f].push_back(k);
                     //printf("len: %d i: %d k:%d\n", len, i, k);
-                    if (len == M && res == target){
+                    if (len == M && res == target){ // Verifica se o res da ultima linha é aquele que se quer obter
                         return;
                     }
                 }
@@ -47,8 +47,9 @@ void calculate(int N, int M, int target, vector<vector<vector<int>>> &tableCalcu
     }
 }
 
-// 2 2 2 2 1 3
-// 0 1 2 3 4 5
+void printResult(){
+    
+}
 
 void printTableCalculated(int M, vector<vector<vector<int>>> &tableCalculated) {
     cout << "TableCalculated:\n";
