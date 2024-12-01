@@ -4,33 +4,36 @@
 #include <iostream>
 using namespace std;
 
-int N, M, target;
 vector<vector<int>> tableRef;
-vector<vector<vector<int>>> tableCalculated;
 
-void readInput() {
-    cin >> N >> M;
-    tableRef.resize(N, vector<int>(N));
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++)
+vector<vector<vector<int>>> readInput(int* N, int* M, int* target) {
+    cin >> *N >> *M;
+    tableRef.resize(*N, vector<int>(*N));
+    for (int i = 0; i < *N; i++) {
+        for (int j = 0; j < *N; j++)
             cin >> tableRef[i][j];
     }
-    tableCalculated.resize(M, vector<vector<int>>(M, vector<int>(M)));
-    for (int i = 0; i < M; i++) {
+    vector<vector<vector<int>>> tableCalculated(*M, vector<vector<int>>(*M, vector<int>(*M)));
+    for (int i = 0; i < *M; i++) {
         cin >> tableCalculated[i][i][0];
         tableCalculated[i][i][1] = 0;
     }
-    cin >> target;
+    cin >> *target;
+    
+    return tableCalculated;
 }
 
-void calculate() {
+void calculate(int N, int M, int target, vector<vector<vector<int>>> &tableCalculated) {
     for (int len = 2; len < M; len++) {
-        for (int i = 0; (i + len) < M; i++) {
+        for (int i = 0; (i + len) <= M; i++) {
             int f = i + len - 1;
             for (int k = f; k > i; k--) {
-                int res = tableRef[tableCalculated[i][k - 1][0]][tableCalculated[k][f][0]];
-                tableCalculated[i][f].push_back(res);
-                //tableCalculated[i][f].push_back(k);
+                //printf("len: %d i: %d k:%d\n", len, i, k);
+                //printf("Indice: %d, %d\n", (tableCalculated[i][k - 1][0]-1), (tableCalculated[k][f][0])-1);
+                int res = tableRef[tableCalculated[i][k - 1][0] - 1][tableCalculated[k][f][0] - 1];
+                //printf("Res %d\n", res);
+                tableCalculated[i][f][0] = res;
+                tableCalculated[i][f][1]= k;
             }
         }
     }
@@ -39,11 +42,11 @@ void calculate() {
 // 2 2 2 2 1 3
 // 0 1 2 3 4 5
 
-void printTableCalculated() {
+void printTableCalculated(int M, vector<vector<vector<int>>> &tableCalculated) {
     cout << "TableCalculated:\n";
     for (int i = 0; i < M; i++) {
         for (int f = i; f < M; f++) {
-            cout << "Interval [" << (i+1) << ", " << (f+1) << "]: ";
+            cout << "Interval [" << (i) << ", " << (f) << "]: ";
             if (tableCalculated[i][f].empty()) {
                 cout << "Empty";
             } else {
@@ -55,6 +58,31 @@ void printTableCalculated() {
         }
     }
 }
+
+int main() {
+    std::ios::sync_with_stdio(0);
+    std::cin.tie(0);
+
+    int N, M, target;
+
+    vector<vector<vector<int>>> tableCalculated = readInput(&N, &M, &target);
+    //calculate(N, M, target, tableCalculated);
+    printTableCalculated(M, tableCalculated);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
     for (int d = 1; d < M; d++) {
@@ -75,29 +103,6 @@ void printTableCalculated() {
     return 0;
 }
 */
-
-int main() {
-    std::ios::sync_with_stdio(0);
-    std::cin.tie(0);
-
-    readInput();
-    calculate();
-    printTableCalculated();
-
-    return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
 
