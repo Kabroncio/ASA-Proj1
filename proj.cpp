@@ -3,54 +3,54 @@
 #include <list>
 #include <iostream>
 #include <algorithm>
+#include <memory> /////////
 using namespace std;
+
+struct Values {
+    int val;
+    int k;
+    Values* prev1;
+    Values* prev2;  ///// tenho q passar &values?
+};
 
 vector<vector<int>> tableRef;
 
-vector<vector<vector<int>>> readInput(int* N, int* M, int* target) {
+vector<vector<vector<Values>>> readInput(int* N, int* M, int* target) {
     cin >> *N >> *M;
     tableRef.resize(*N, vector<int>(*N));
     for (int i = 0; i < *N; i++) {
         for (int j = 0; j < *N; j++)
             cin >> tableRef[i][j];
     }
-    vector<vector<vector<int>>> tableCalculated(*M, vector<vector<int>>(*M, vector<int>()));
+    vector<vector<vector<Values>>> tableCalculated(*M, vector<vector<Values>>(*M, vector<Values>()));
     for (int i = 0; i < *M; i++) {
-        int val;
-        cin >> val;
+        int num;
+        cin >> num;
+        Values val = {num, 0, nullptr, nullptr};
         tableCalculated[i][i].push_back(val);
-        tableCalculated[i][i].push_back(0);
     }
     cin >> *target;
     
     return tableCalculated;
 }
 
-bool calculate(int N, int M, int target, vector<vector<vector<int>>> &tableCalculated) {
+bool calculate(int N, int M, int target, vector<vector<vector<Values>>> &tableCalculated) {
     for (int len = 2; len <= M; len++) {    // Vai iterando sobre a sequencia inicial com os varios tamanhos possiveis ate M
         for (int i = 0; (i + len) <= M; i++) {  // Vai a cada linha
             int f = i + len - 1;    // Obtem o ultimo indice do termo da sequencia a ser observada
             for (int k = f; k > i; k--) {   // Vai com o K desde o penultimo elemento ate o segundo
-                int count1 = 0; 
-                int count2 = 0;
-                for (int val1 : tableCalculated[i][k-1]) {
-                    if (count1 % 2 == 0) {    // Verifica se o val1 é um valor calculado ou um k
-                        for (int val2 : tableCalculated[k][f]) {
-                            if (count2 % 2 == 0) {    
-                                int res = tableRef[val1 - 1][val2 - 1];
-
-                                if (find(tableCalculated[i][f].begin(), tableCalculated[i][f].end(), res) == tableCalculated[i][f].end()) { //Verifica se o res ja existe
-                                    tableCalculated[i][f].push_back(res);
-                                    tableCalculated[i][f].push_back(k);
-                                    if (len == M && res == target) { // Verifica se o res da ultima linha é aquele que se quer obter
-                                        return true;
-                                    }
-                                }
-                            }
-                            count2++;  
-                        }  
-                    }
-                    count1++;                  
+                for (Values val_prev1 : tableCalculated[i][k-1]) {
+                    for (Values val_prev2 : tableCalculated[k][f]) {
+                        int res = tableRef[val_prev1.val - 1][val_prev2.val - 1];
+                        printf("K: %d\n", k); //////////////////////////////////////
+                        Values atual = {res, k, &val_prev1, &val_prev2};
+                        // if (find(tableCalculated[i][f].begin(), tableCalculated[i][f].end(), res) == tableCalculated[i][f].end()) { //Verifica se o res ja existe
+                        tableCalculated[i][f].push_back(atual);
+                        if (len == M && res == target) { // Verifica se o res da ultima linha é aquele que se quer obter
+                            return true;
+                        }
+                        
+                    }        
                 }   
             }
         }
@@ -59,38 +59,25 @@ bool calculate(int N, int M, int target, vector<vector<vector<int>>> &tableCalcu
 }
 
 
-/*
-string printResult(int i, int j, int k, vector<vector<vector<int>>> &tableCalculated, int val) {
+string printResult(int i, int j, Values* atual) {
+    if (atual == nullptr || atual == NULL) {
+        return "hoyaaa";  // Handle nullptr gracefully (you could also throw an error or return some indicator value)
+    }
+    if (atual->k == NULL) {
+        return "meu pau na tua mao";
+    }
+    if (atual->val == NULL) {
+        return "CU.";
+    }
     if (i == j)
-        return to_string(tableCalculated[i][j][0]);
+        return to_string(atual->val);
     else if (i == (j - 1))
-        return "(" + printResult(i, i, 0, tableCalculated)  + " " + printResult(j, j, 0, tableCalculated) + ")";
-    else {
-        for (int indice = 0;  : tableCalculated[i][j])
-
-
-        return "(" + printResult(i, k-1, novo_k, tableCalculated) + " )" + printResult(k, j, novo_k2, tableCalculated);
-    }
+        return "(" + printResult(i, i, atual->prev1)  + " " + printResult(j, j, atual->prev2) + ")";
+    else
+        return "(" + printResult(i, atual->k - 1, atual->prev1) + " )" + printResult(atual->k, j, atual->prev2);
 }
-*/
 
 
-void printTableCalculated(int M, vector<vector<vector<int>>> &tableCalculated) {
-    cout << "TableCalculated:\n";
-    for (int i = 0; i < M; i++) {
-        for (int f = i; f < M; f++) {
-            cout << "Interval [" << (i) << ", " << (f) << "]: ";
-            if (tableCalculated[i][f].empty()) {
-                cout << "Empty";
-            } else {
-                for (int val : tableCalculated[i][f]) {
-                    cout << val << " ";
-                }
-            }
-            cout << "\n";
-        }
-    }
-}
 
 int main() {
     std::ios::sync_with_stdio(0);
@@ -98,18 +85,59 @@ int main() {
 
     int N, M, target;
 
-    vector<vector<vector<int>>> tableCalculated = readInput(&N, &M, &target);
+    vector<vector<vector<Values>>> tableCalculated = readInput(&N, &M, &target);
 
     if (calculate(N, M, target, tableCalculated)) {
         cout << "1\n";
-        // cout << printResult();
+        cout << printResult(0, M-1, &(tableCalculated[0][M-1].back()));
     }
     else
         cout << "0\n";
-    printTableCalculated(M, tableCalculated);
+    
+    // printTableCalculated(M, tableCalculated);
 
     return 0;
 }
+
+
+/*
+
+*/
+
+/*
+void printTableCalculated(int M, const vector<vector<vector<Values>>> &tableCalculated) {
+    cout << "TableCalculated:\n";
+
+    for (int i = 0; i < M; i++) {
+        for (int j = i; j < M; j++) {
+            cout << "Interval [" << i << ", " << j << "]:\n";
+            if (tableCalculated[i][j].empty()) {
+                cout << "  Empty\n";
+            } else {
+                for (const auto &val : tableCalculated[i][j]) {
+                    cout << "  Value: " << val.val
+                         << ", k: " << val.k;
+
+                    if (val.prev1) {
+                        cout << ", Prev1: " << val.prev1->val;
+                    } else {
+                        cout << ", Prev1: null";
+                    }
+
+                    if (val.prev2) {
+                        cout << ", Prev2: " << val.prev2->val;
+                    } else {
+                        cout << ", Prev2: null";
+                    }
+
+                    cout << "\n";
+                }
+            }
+        }
+    }
+}
+*/
+
 
 /*
 [[[2, 0], [1, 1], [2, 2, 1, 1], [2, 3, 2, 2, 1, 1]],
