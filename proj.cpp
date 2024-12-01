@@ -1,32 +1,29 @@
 #include <cstdio>
 #include <vector>
-#include <list>
 #include <iostream>
-#include <algorithm>
-#include <memory> /////////
+#include <memory> // Para std::shared_ptr
 using namespace std;
 
 struct Values {
     int val;
     int k;
-    Values* prev1;
-    Values* prev2;  ///// tenho q passar &values?
+    shared_ptr<Values> prev1;
+    shared_ptr<Values> prev2;
 };
 
 vector<vector<int>> tableRef;
 
-vector<vector<vector<Values>>> readInput(int* N, int* M, int* target) {
+vector<vector<vector<shared_ptr<Values>>>> readInput(int* N, int* M, int* target) {
     cin >> *N >> *M;
     tableRef.resize(*N, vector<int>(*N));
     for (int i = 0; i < *N; i++) {
         for (int j = 0; j < *N; j++)
             cin >> tableRef[i][j];
     }
-    vector<vector<vector<Values>>> tableCalculated(*M, vector<vector<Values>>(*M, vector<Values>()));
-    for (int i = 0; i < *M; i++) {
+    vector<vector<vector<shared_ptr<Values>>>> tableCalculated(*M, vector<vector<shared_ptr<Values>>>(*M, vector<shared_ptr<Values>>()));    for (int i = 0; i < *M; i++) {
         int num;
         cin >> num;
-        Values val = {num, 0, nullptr, nullptr};
+        auto val = make_shared<Values>(Values{num, 0, nullptr, nullptr});
         tableCalculated[i][i].push_back(val);
     }
     cin >> *target;
@@ -34,17 +31,16 @@ vector<vector<vector<Values>>> readInput(int* N, int* M, int* target) {
     return tableCalculated;
 }
 
-bool calculate(int N, int M, int target, vector<vector<vector<Values>>> &tableCalculated) {
+bool calculate(int N, int M, int target, vector<vector<vector<shared_ptr<Values>>>> &tableCalculated) {
     for (int len = 2; len <= M; len++) {    // Vai iterando sobre a sequencia inicial com os varios tamanhos possiveis ate M
         for (int i = 0; (i + len) <= M; i++) {  // Vai a cada linha
             int f = i + len - 1;    // Obtem o ultimo indice do termo da sequencia a ser observada
             for (int k = f; k > i; k--) {   // Vai com o K desde o penultimo elemento ate o segundo
-                for (Values val_prev1 : tableCalculated[i][k-1]) {
-                    for (Values val_prev2 : tableCalculated[k][f]) {
-                        int res = tableRef[val_prev1.val - 1][val_prev2.val - 1];
-                        printf("K: %d\n", k); //////////////////////////////////////
-                        Values atual = {res, k, &val_prev1, &val_prev2};
+                for (auto& val_prev1 : tableCalculated[i][k - 1]) {          
+                    for (auto& val_prev2 : tableCalculated[k][f]) {
+                        int res = tableRef[val_prev1->val - 1][val_prev2->val - 1];
                         // if (find(tableCalculated[i][f].begin(), tableCalculated[i][f].end(), res) == tableCalculated[i][f].end()) { //Verifica se o res ja existe
+                        auto atual = make_shared<Values>(Values{res, k, val_prev1, val_prev2});
                         tableCalculated[i][f].push_back(atual);
                         if (len == M && res == target) { // Verifica se o res da ultima linha é aquele que se quer obter
                             return true;
@@ -59,22 +55,16 @@ bool calculate(int N, int M, int target, vector<vector<vector<Values>>> &tableCa
 }
 
 
-string printResult(int i, int j, Values* atual) {
-    if (atual == nullptr || atual == NULL) {
-        return "hoyaaa";  // Handle nullptr gracefully (you could also throw an error or return some indicator value)
-    }
-    if (atual->k == NULL) {
-        return "meu pau na tua mao";
-    }
-    if (atual->val == NULL) {
-        return "CU.";
-    }
+string printResult(int i, int j, shared_ptr<Values> atual) {
+    //printf("Val: %d, K: %d\n",atual->val, atual->k); //////////////////////////////////////
+
     if (i == j)
         return to_string(atual->val);
-    else if (i == (j - 1))
-        return "(" + printResult(i, i, atual->prev1)  + " " + printResult(j, j, atual->prev2) + ")";
-    else
-        return "(" + printResult(i, atual->k - 1, atual->prev1) + " )" + printResult(atual->k, j, atual->prev2);
+    
+    if (i == j - 1)
+        return "(" + printResult(i, i, atual->prev1) + " " + printResult(j, j, atual->prev2) + ")";
+    
+    return "(" + printResult(i, atual->k - 1, atual->prev1) + " " + printResult(atual->k, j, atual->prev2) + ")";
 }
 
 
@@ -85,11 +75,11 @@ int main() {
 
     int N, M, target;
 
-    vector<vector<vector<Values>>> tableCalculated = readInput(&N, &M, &target);
+    auto tableCalculated = readInput(&N, &M, &target);
 
     if (calculate(N, M, target, tableCalculated)) {
         cout << "1\n";
-        cout << printResult(0, M-1, &(tableCalculated[0][M-1].back()));
+        cout << printResult(0, M-1, tableCalculated[0][M-1].back()) << endl;
     }
     else
         cout << "0\n";
