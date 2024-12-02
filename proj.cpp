@@ -6,10 +6,10 @@ using namespace std;
 void readInput(int* N, int* M, int* target, vector<vector<int>> &tableRef, vector<vector<vector<int>>> &tableCalculated) {
     cin >> *N >> *M;
     tableRef.resize(*N, vector<int>(*N));
-    for (int i = 0; i < *N; i++) {
+    for (int i = 0; i < *N; i++)
         for (int j = 0; j < *N; j++)
             cin >> tableRef[i][j];
-    }
+
     tableCalculated.resize(*M, vector<vector<int>>(*M, vector<int>()));
     for (int i = 0; i < *M; i++) {
         int num;
@@ -23,7 +23,7 @@ bool calculate(int N, int M, int target, vector<vector<vector<int>>> &tableCalcu
     for (int len = 2; len <= M; len++) {    // Cria subsequencias da sequencia inicial com todos os tamanhos possiveis desde 2 ate M
         for (int i = 0; (i + len) <= M; i++) {    // Obtem o valor inicial e verifica se o tamanho excede o tamanho da sequencia inicial
             int f = i + len - 1;    // Obtem o valor final da subsequencia
-            vector<int> usedResults(N, false);    // Cria um vetor temporario para verificar se os valores ja foram inseridos na tableCalculated
+            vector<bool> usedResults(N, false);    // Cria um vetor temporario para verificar se os valores ja foram inseridos na tableCalculated
             for (int k = f; k > i; k--) {    // Avalia todos os pontos possiveis para dividir a subsequencia
                 if (tableCalculated[i][f].size() / 4 >= static_cast<size_t>(N)) continue;    // Verifica se ja existe todos os resultados possiveis
                 size_t sizeLeft = tableCalculated[i][k - 1].size();
