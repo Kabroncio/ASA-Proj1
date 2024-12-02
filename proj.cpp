@@ -17,8 +17,8 @@ vector<vector<pair<vector<int>, vector<int>>>> tableCalculated(*M, vector<pair<v
         cin >> num;
         tableCalculated[i][i].first.push_back(num);
         tableCalculated[i][i].first.push_back(0);
-        tableCalculated[i][i].first.push_back(i);
-        tableCalculated[i][i].first.push_back(i);
+        tableCalculated[i][i].first.push_back(0);
+        tableCalculated[i][i].first.push_back(0);
         tableCalculated[i][i].second[num - 1] = 1;
     }
     cin >> *target;
@@ -26,7 +26,7 @@ vector<vector<pair<vector<int>, vector<int>>>> tableCalculated(*M, vector<pair<v
     return tableCalculated;
 }
 
-int calculate(int N, int M, int target, vector<vector<pair<vector<int>, vector<int>>>> &tableCalculated, vector<vector<int>>& tableRef) {
+bool calculate(int N, int M, int target, vector<vector<pair<vector<int>, vector<int>>>> &tableCalculated, vector<vector<int>>& tableRef) {
     for (int len = 2; len <= M; len++) {    // Vai iterando sobre a sequencia inicial com os varios tamanhos possiveis ate M
         for (int i = 0; (i + len) <= M; i++) {  // Vai a cada linha
             int f = i + len - 1;    // Obtem o ultimo indice do termo da sequencia a ser observada
@@ -34,59 +34,45 @@ int calculate(int N, int M, int target, vector<vector<pair<vector<int>, vector<i
                 int counter = 0;
                 size_t size1 = tableCalculated[i][k - 1].first.size();
                 size_t size2 = tableCalculated[k][f].first.size();
-                if (counter < N) {
-                    for (size_t v1 = 0; v1 < size1; v1 += 4) {          
-                        for (size_t v2 = 0; v2 < size2; v2 += 4) {
+                
+                for (size_t v1 = 0; v1 < size1; v1 += 4) {          
+                    for (size_t v2 = 0; v2 < size2; v2 += 4) {
+                        if (counter < N) {
                             int res = tableRef[tableCalculated[i][k-1].first[v1] - 1][tableCalculated[k][f].first[v2] - 1];
                             if (tableCalculated[i][f].second[res - 1] == 0) {
                                 tableCalculated[i][f].first.push_back(res);
                                 tableCalculated[i][f].first.push_back(k);
-                                tableCalculated[i][f].first.push_back(v1);
-                                tableCalculated[i][f].first.push_back(v2);
+                                tableCalculated[i][f].first.push_back(v1); // Indice onde esta guardado val1
+                                tableCalculated[i][f].first.push_back(v2); // Indice onde esta guardado val2
                                 tableCalculated[i][f].second[res - 1] = 1;
                                 counter++;
 
                                 if (len == M && res == target)  // Verifica se o res da ultima linha é aquele que se quer obter
-                                    return counter;
+                                    return true;
                             } 
                         }
-                    }           
-                }   
+                    }
+                }                 
             }
         }
     }
-    return -1;
+    return false;
 }
 
 
-string printResult(int i, int j, int v1, int v2, vector<vector<pair<vector<int>, vector<int>>>> &tableCalculated) {
+string printResult(int i, int j, int valIndice, vector<vector<pair<vector<int>, vector<int>>>> &tableCalculated) {
 
     if (i == j)
         return to_string(tableCalculated[i][j].first[0]);
     if (i == j - 1)
-        return "(" + printResult(i, i, 0, 0, tableCalculated) + " " + printResult(j, j, 0, 0, tableCalculated) + ")";
+        return "(" + to_string(tableCalculated[i][i].first[0]) + " " + to_string(tableCalculated[j][j].first[0]) + ")";
     
-    return "(" + printResult(i, tableCalculated[i][j].first[1 + v1] - 1, tableCalculated[i][j].first[2 + v1], tableCalculated[i][j].first[3 + v1], tableCalculated) + " " 
-        + printResult(tableCalculated[i][j].first[1 + v2], j, tableCalculated[i][j].first[2 + v2], tableCalculated[i][j].first[3 + v2], tableCalculated) + ")";
-}
+    int k = tableCalculated[i][j].first[valIndice + 1];
+    int v1 = tableCalculated[i][j].first[valIndice + 2];
+    int v2 = tableCalculated[i][j].first[valIndice + 3];
 
-void printTableCalculated(const vector<vector<pair<vector<int>, vector<int>>>>& tableCalculated) {
-    cout << "Table Calculated:\n";
-    for (size_t i = 0; i < tableCalculated.size(); i++) {
-        for (size_t j = 0; j < tableCalculated[i].size(); j++) {
-            cout << "[" << i << "][" << j << "] -> First: {";
-            for (size_t k = 0; k < tableCalculated[i][j].first.size(); k++) {
-                cout << tableCalculated[i][j].first[k];
-                if (k < tableCalculated[i][j].first.size() - 1) cout << ", ";
-            }
-            cout << "} Second: {";
-            for (size_t k = 0; k < tableCalculated[i][j].second.size(); k++) {
-                cout << tableCalculated[i][j].second[k];
-                if (k < tableCalculated[i][j].second.size() - 1) cout << ", ";
-            }
-            cout << "}\n";
-        }
-    }
+    return "(" + printResult(i, k - 1, v1, tableCalculated) + " " 
+        + printResult(k, j, v2, tableCalculated) + ")";
 }
 
 
@@ -102,14 +88,13 @@ int main() {
     if (M == 1)
         (tableCalculated[0][0].first[0] == target) ? (cout << ("1\n" + to_string(tableCalculated[0][0].first[0])) << endl) : cout << "0\n";
 
-    else if (int count = calculate(N, M, target, tableCalculated, tableRef) != -1) {
+    else if (calculate(N, M, target, tableCalculated, tableRef)) {
         cout << "1\n";
-        cout << printResult(0, M-1, tableCalculated[0][M-1].first[2*count], tableCalculated[0][M-1].first[3*count], tableCalculated) << endl; 
+        size_t size = tableCalculated[0][M-1].first.size();
+        cout << printResult(0, M-1, size - 4, tableCalculated) << endl; 
     }
     else
         cout << "0\n";
-
-    printTableCalculated(tableCalculated);
 
     return 0;
 }
