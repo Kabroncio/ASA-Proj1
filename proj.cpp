@@ -35,9 +35,10 @@ bool calculate(int N, int M, int target, vector<vector<pair<vector<int>, vector<
                 size_t size1 = tableCalculated[i][k - 1].first.size();
                 size_t size2 = tableCalculated[k][f].first.size();
                 
-                for (size_t v1 = 0; v1 < size1; v1 += 4) {          
-                    for (size_t v2 = 0; v2 < size2; v2 += 4) {
-                        if (counter < N) {
+                    for (size_t v1 = 0; v1 < size1; v1 += 4) {      
+                        if (counter >= N) break;
+                        for (size_t v2 = 0; v2 < size2; v2 += 4) {
+                            if (counter >= N) break;
                             int res = tableRef[tableCalculated[i][k-1].first[v1] - 1][tableCalculated[k][f].first[v2] - 1];
                             if (tableCalculated[i][f].second[res - 1] == 0) {
                                 tableCalculated[i][f].first.push_back(res);
@@ -51,8 +52,8 @@ bool calculate(int N, int M, int target, vector<vector<pair<vector<int>, vector<
                                     return true;
                             } 
                         }
-                    }
-                }                 
+                    }           
+                   
             }
         }
     }
