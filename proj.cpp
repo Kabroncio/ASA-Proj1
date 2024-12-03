@@ -1,81 +1,59 @@
 #include <cstdio>
 #include <vector>
 #include <iostream>
-#include <memory>
 using namespace std;
 
-vector<vector<pair<vector<int>, vector<int>>>> readInput(int* N, int* M, int* target, vector<vector<int>>& tableRef) {
+void readInput(int* N, int* M, int* target, vector<vector<int>> &tableRef, vector<vector<vector<int>>> &tableCalculated) {
     cin >> *N >> *M;
     tableRef.resize(*N, vector<int>(*N));
-    for (int i = 0; i < *N; i++) {
+    for (int i = 0; i < *N; i++)
         for (int j = 0; j < *N; j++)
             cin >> tableRef[i][j];
-    }
-vector<vector<pair<vector<int>, vector<int>>>> tableCalculated(*M, vector<pair<vector<int>, vector<int>>>(*M, make_pair(vector<int>(), vector<int>(*N, 0))));
+
+    tableCalculated.resize(*M, vector<vector<int>>(*M, vector<int>()));
     for (int i = 0; i < *M; i++) {
         int num;
         cin >> num;
-        tableCalculated[i][i].first.push_back(num);
-        tableCalculated[i][i].first.push_back(0);
-        tableCalculated[i][i].first.push_back(0);
-        tableCalculated[i][i].first.push_back(0);
-        tableCalculated[i][i].second[num - 1] = 1;
+        tableCalculated[i][i].insert(tableCalculated[i][i].end(), {num, 0, 0, 0});
     }
     cin >> *target;
-    
-    return tableCalculated;
 }
 
-bool calculate(int N, int M, int target, vector<vector<pair<vector<int>, vector<int>>>> &tableCalculated, vector<vector<int>>& tableRef) {
-    for (int len = 2; len <= M; len++) {    // Vai iterando sobre a sequencia inicial com os varios tamanhos possiveis ate M
-        for (int i = 0; (i + len) <= M; i++) {  // Vai a cada linha
-            int f = i + len - 1;    // Obtem o ultimo indice do termo da sequencia a ser observada
-            for (int k = f; k > i; k--) {   // Vai com o K desde o penultimo elemento ate o segundo
-                int counter = 0;
-                size_t size1 = tableCalculated[i][k - 1].first.size();
-                size_t size2 = tableCalculated[k][f].first.size();
-                
-                    for (size_t v1 = 0; v1 < size1; v1 += 4) {      
-                        if (counter >= N) break;
-                        for (size_t v2 = 0; v2 < size2; v2 += 4) {
-                            if (counter >= N) break;
-                            int res = tableRef[tableCalculated[i][k-1].first[v1] - 1][tableCalculated[k][f].first[v2] - 1];
-                            if (tableCalculated[i][f].second[res - 1] == 0) {
-                                tableCalculated[i][f].first.push_back(res);
-                                tableCalculated[i][f].first.push_back(k);
-                                tableCalculated[i][f].first.push_back(v1); // Indice onde esta guardado val1
-                                tableCalculated[i][f].first.push_back(v2); // Indice onde esta guardado val2
-                                tableCalculated[i][f].second[res - 1] = 1;
-                                counter++;
-
-                                if (len == M && res == target)  // Verifica se o res da ultima linha é aquele que se quer obter
-                                    return true;
-                            } 
-                        }
-                    }           
-                   
+bool calculate(int N, int M, int target, vector<vector<vector<int>>> &tableCalculated, vector<vector<int>>& tableRef) {
+    for (int len = 2; len <= M; len++) {    // Cria subsequencias da sequencia inicial com todos os tamanhos possiveis desde 2 ate M
+        for (int i = 0; (i + len) <= M; i++) {    // Obtem o valor inicial e verifica se o tamanho excede o tamanho da sequencia inicial
+            int f = i + len - 1;    // Obtem o valor final da subsequencia
+            vector<bool> usedResults(N, false);    // Cria um vetor temporario para verificar se os valores ja foram inseridos na tableCalculated
+            for (int k = f; k > i; k--) {    // Avalia todos os pontos possiveis para dividir a subsequencia
+                if (tableCalculated[i][f].size() / 4 >= static_cast<size_t>(N)) continue;    // Verifica se ja existe todos os resultados possiveis
+                size_t sizeLeft = tableCalculated[i][k - 1].size();
+                size_t sizeRight = tableCalculated[k][f].size();  
+                for (size_t valLeft = 0; valLeft < sizeLeft; valLeft += 4) {          
+                    for (size_t valRight = 0; valRight < sizeRight; valRight += 4) {
+                        int res = tableRef[tableCalculated[i][k-1][valLeft] - 1][tableCalculated[k][f][valRight] - 1];    // Ve qual o valor correspondente da tableRef
+                        if (usedResults[res - 1] == false) {
+                            tableCalculated[i][f].insert(tableCalculated[i][f].end(), {res, k, static_cast<int>(valLeft), static_cast<int>(valRight)});    // Adiciona a tableCalculated o resultado, o ponto de divisao da subsequencia e o indice dos resultados utilizados
+                            usedResults[res - 1] = true;    // Marca que o resultado ja foi verificado                    
+                            if (len == M && res == target) return true; // Verifica se o res da ultima linha é aquele que se quer obter
+                        } 
+                    }
+                }                 
             }
         }
     }
     return false;
 }
 
-
-string printResult(int i, int j, int valIndice, vector<vector<pair<vector<int>, vector<int>>>> &tableCalculated) {
-
+string printResult(int i, int j, int valIndice, vector<vector<vector<int>>> &tableCalculated) {
     if (i == j)
-        return to_string(tableCalculated[i][j].first[0]);
-    if (i == j - 1)
-        return "(" + to_string(tableCalculated[i][i].first[0]) + " " + to_string(tableCalculated[j][j].first[0]) + ")";
-    
-    int k = tableCalculated[i][j].first[valIndice + 1];
-    int v1 = tableCalculated[i][j].first[valIndice + 2];
-    int v2 = tableCalculated[i][j].first[valIndice + 3];
-
-    return "(" + printResult(i, k - 1, v1, tableCalculated) + " " 
-        + printResult(k, j, v2, tableCalculated) + ")";
+        return to_string(tableCalculated[i][j][0]);
+    else{
+        int k = tableCalculated[i][j][valIndice + 1];
+        int v1 = tableCalculated[i][j][valIndice + 2];
+        int v2 = tableCalculated[i][j][valIndice + 3];
+        return "(" + printResult(i, k - 1, v1, tableCalculated) + " " + printResult(k, j, v2, tableCalculated) + ")";
+    }
 }
-
 
 int main() {
     ios::sync_with_stdio(0);
@@ -83,20 +61,16 @@ int main() {
 
     int N, M, target;
     vector<vector<int>> tableRef;
+    vector<vector<vector<int>>> tableCalculated;
 
-    vector<vector<pair<vector<int>, vector<int>>>> tableCalculated = readInput(&N, &M, &target, tableRef);
+    readInput(&N, &M, &target, tableRef, tableCalculated);
 
     if (M == 1)
-        (tableCalculated[0][0].first[0] == target) ? (cout << ("1\n" + to_string(tableCalculated[0][0].first[0])) << endl) : cout << "0\n";
-
-    else if (calculate(N, M, target, tableCalculated, tableRef)) {
-        cout << "1\n";
-        size_t size = tableCalculated[0][M-1].first.size();
-        cout << printResult(0, M-1, size - 4, tableCalculated) << endl; 
-    }
+        (tableCalculated[0][0][0] == target) ? (cout << "1\n" << to_string(tableCalculated[0][0][0]) << endl) : cout << "0\n";    // Imprime o valor da sequencia sem parenteses se ela so tiver um valor
+    else if (calculate(N, M, target, tableCalculated, tableRef))
+        cout << "1\n" << printResult(0, M-1, tableCalculated[0][M-1].size() - 4, tableCalculated) << endl;
     else
         cout << "0\n";
 
     return 0;
 }
-
